@@ -26,8 +26,8 @@ export function DataPreview({ data }: DataPreviewProps) {
 
   return (
     <Card>
-      <CardHeader className="pb-3 flex flex-row items-center justify-between">
-        <CardTitle className="text-base flex items-center gap-2">
+      <CardHeader className="pb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+        <CardTitle className="text-sm flex items-center gap-2">
           <Info className="w-4 h-4 text-primary" />
           Pré-visualização dos Dados
         </CardTitle>
@@ -43,17 +43,17 @@ export function DataPreview({ data }: DataPreviewProps) {
         )}
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-3 gap-4 mb-4">
-          <div className="p-3 rounded-md bg-secondary/50 text-center">
-            <p className="text-2xl font-bold text-foreground">{data.totalRecords.toLocaleString('pt-BR')}</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+          <div className="p-3 rounded-md bg-secondary/50">
+            <p className="text-lg font-semibold text-foreground">{data.totalRecords.toLocaleString('pt-BR')}</p>
             <p className="text-xs text-muted-foreground">Registros</p>
           </div>
-          <div className="p-3 rounded-md bg-secondary/50 text-center">
-            <p className="text-2xl font-bold text-foreground">{data.clientesUnicos}</p>
+          <div className="p-3 rounded-md bg-secondary/50">
+            <p className="text-lg font-semibold text-foreground">{data.clientesUnicos}</p>
             <p className="text-xs text-muted-foreground">Clientes Únicos</p>
           </div>
-          <div className="p-3 rounded-md bg-secondary/50 text-center">
-            <p className="text-2xl font-bold text-foreground">
+          <div className="p-3 rounded-md bg-secondary/50">
+            <p className="text-sm font-medium text-foreground">
               {data.periodo.inicio.toLocaleDateString('pt-BR')} — {data.periodo.fim.toLocaleDateString('pt-BR')}
             </p>
             <p className="text-xs text-muted-foreground">Período</p>

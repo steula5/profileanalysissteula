@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { BarChart3, Search, X } from 'lucide-react';
-import type { OrderRecord, ClientProfile } from '@/lib/data-parser';
+import type { OrderRecord } from '@/lib/data-parser';
 import type { ClientProfile as ClientProfileType } from '@/lib/analysis-engine';
 import { generateClientPDF } from '@/lib/pdf-generator';
 

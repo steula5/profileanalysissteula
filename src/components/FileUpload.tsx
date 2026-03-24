@@ -16,7 +16,6 @@ interface FileUploadProps {
 
 export function FileUpload({ onFilesReady, isProcessing }: FileUploadProps) {
   const [files, setFiles] = useState<UploadedFile[]>([]);
-  const [dragOver, setDragOver] = useState(false);
 
   const handleFiles = useCallback((newFiles: FileList | null) => {
     if (!newFiles) return;
@@ -37,41 +36,45 @@ export function FileUpload({ onFilesReady, isProcessing }: FileUploadProps) {
   };
 
   return (
-    <Card className="border-2 border-dashed border-border hover:border-primary/50 transition-colors">
-      <CardContent className="p-6">
-        <div
-          className={`flex flex-col items-center gap-4 p-8 rounded-lg transition-colors ${dragOver ? 'bg-primary/5' : ''}`}
-          onDragOver={e => { e.preventDefault(); setDragOver(true); }}
-          onDragLeave={() => setDragOver(false)}
-          onDrop={e => { e.preventDefault(); setDragOver(false); handleFiles(e.dataTransfer.files); }}
-        >
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-            <Upload className="w-8 h-8 text-primary" />
+    <Card>
+      <CardContent className="p-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center">
+              <Upload className="w-4 h-4 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-foreground">Base de pedidos</p>
+              <p className="text-xs text-muted-foreground">Arquivos .xlsx, .xls ou .csv</p>
+            </div>
           </div>
-          <div className="text-center">
-            <h3 className="text-lg font-semibold text-foreground">Upload de Base de Pedidos</h3>
-            <p className="text-sm text-muted-foreground mt-1">Arraste arquivos .xlsx ou .csv aqui</p>
-          </div>
-          <label className="cursor-pointer">
-            <Button variant="outline" asChild>
-              <span>Selecionar Arquivos</span>
+
+          <div className="flex items-center gap-2">
+            <label className="cursor-pointer">
+              <Button variant="outline" size="sm" asChild>
+                <span>Selecionar arquivos</span>
+              </Button>
+              <input
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                multiple
+                className="hidden"
+                onChange={e => handleFiles(e.target.files)}
+              />
+            </label>
+
+            <Button onClick={handleAnalyze} disabled={isProcessing || files.length === 0} size="sm">
+              {isProcessing ? 'Processando...' : 'Analisar'}
             </Button>
-            <input
-              type="file"
-              accept=".xlsx,.xls,.csv"
-              multiple
-              className="hidden"
-              onChange={e => handleFiles(e.target.files)}
-            />
-          </label>
+          </div>
         </div>
 
         {files.length > 0 && (
-          <div className="mt-4 space-y-2">
+          <div className="mt-3 space-y-2">
             {files.map((f, i) => (
-              <div key={i} className="flex items-center justify-between p-3 rounded-md bg-secondary/50">
+              <div key={i} className="flex items-center justify-between p-2 rounded-md bg-secondary/50">
                 <div className="flex items-center gap-3">
-                  <FileSpreadsheet className="w-5 h-5 text-primary" />
+                  <FileSpreadsheet className="w-4 h-4 text-primary" />
                   <div>
                     <p className="text-sm font-medium text-foreground">{f.name}</p>
                     <p className="text-xs text-muted-foreground flex items-center gap-1">
@@ -85,9 +88,6 @@ export function FileUpload({ onFilesReady, isProcessing }: FileUploadProps) {
                 </Button>
               </div>
             ))}
-            <Button onClick={handleAnalyze} disabled={isProcessing} className="w-full mt-3">
-              {isProcessing ? 'Processando...' : 'Analisar Base de Pedidos'}
-            </Button>
           </div>
         )}
       </CardContent>

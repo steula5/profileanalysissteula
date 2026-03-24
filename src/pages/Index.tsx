@@ -3,7 +3,6 @@ import { FileUpload } from '@/components/FileUpload';
 import { DataPreview } from '@/components/DataPreview';
 import { AnalysisDashboard } from '@/components/AnalysisDashboard';
 import { ClientDetailAnalysis } from '@/components/ClientDetailAnalysis';
-import { RepresentativeFilter } from '@/components/RepresentativeFilter';
 import { parseFile, type DataValidationResult, type OrderRecord } from '@/lib/data-parser';
 import { runAnalysis, type AnalysisResult } from '@/lib/analysis-engine';
 import { BarChart3 } from 'lucide-react';
@@ -66,8 +65,8 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
+        <div className="container mx-auto max-w-5xl px-4 py-4 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
             <BarChart3 className="w-5 h-5 text-primary-foreground" />
           </div>
           <div>
@@ -77,15 +76,14 @@ const Index = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 space-y-6 max-w-6xl">
+      <main className="container mx-auto px-4 py-6 space-y-5 max-w-5xl">
         <FileUpload onFilesReady={handleFiles} isProcessing={isProcessing} />
         {preview && <DataPreview data={preview} />}
         {analysis && (
           <Tabs defaultValue="dashboard" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2 max-w-md">
               <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
               <TabsTrigger value="cliente">Por Cliente</TabsTrigger>
-              <TabsTrigger value="representante">Por Representante</TabsTrigger>
             </TabsList>
 
             <TabsContent value="dashboard" className="mt-6">
@@ -94,10 +92,6 @@ const Index = () => {
 
             <TabsContent value="cliente" className="mt-6">
               <ClientDetailAnalysis records={allRecords} clienteProfile={analysis.clientes[0]} />
-            </TabsContent>
-
-            <TabsContent value="representante" className="mt-6">
-              <RepresentativeFilter records={allRecords} />
             </TabsContent>
           </Tabs>
         )}

@@ -1,4 +1,4 @@
-import { Download, TrendingUp, TrendingDown, Minus, Users, Package, UserCheck, AlertTriangle, Target, BarChart3, FileText } from 'lucide-react';
+import { Download, TrendingUp, TrendingDown, Minus, Users, Package, AlertTriangle, Target, BarChart3, FileText } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -59,10 +59,10 @@ export function AnalysisDashboard({ result }: Props) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <h2 className="text-xl font-bold text-foreground">Análise Comercial</h2>
+        <h2 className="text-lg font-semibold text-foreground">Análise Comercial</h2>
         <div className="flex gap-2">
           <Button onClick={handleDownloadSummaryPDF} variant="outline" className="gap-2">
             <FileText className="w-4 h-4" /> PDF Resumo
@@ -88,7 +88,7 @@ export function AnalysisDashboard({ result }: Props) {
       </Card>
 
       {/* Scenarios */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-xs text-muted-foreground mb-1">Cenário Conservador</p>
@@ -105,10 +105,9 @@ export function AnalysisDashboard({ result }: Props) {
 
       {/* Tabs */}
       <Tabs defaultValue="clientes">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3 max-w-xl">
           <TabsTrigger value="clientes" className="gap-1"><Users className="w-3 h-3" /> Clientes</TabsTrigger>
           <TabsTrigger value="itens" className="gap-1"><Package className="w-3 h-3" /> Itens</TabsTrigger>
-          <TabsTrigger value="reps" className="gap-1"><UserCheck className="w-3 h-3" /> Representantes</TabsTrigger>
           <TabsTrigger value="oport" className="gap-1"><Target className="w-3 h-3" /> Oportunidades</TabsTrigger>
         </TabsList>
 
@@ -130,7 +129,7 @@ export function AnalysisDashboard({ result }: Props) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {result.clientes.slice(0, 20).map((c, i) => (
+                  {result.clientes.slice(0, 12).map((c, i) => (
                     <TableRow key={i}>
                       <TableCell className="font-medium max-w-[200px] truncate">{c.nome}</TableCell>
                       <TableCell>{classBadge(c.classificacao)}</TableCell>
@@ -178,7 +177,7 @@ export function AnalysisDashboard({ result }: Props) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {result.itens.slice(0, 20).map((item, i) => (
+                  {result.itens.slice(0, 12).map((item, i) => (
                     <TableRow key={i}>
                       <TableCell className="font-medium max-w-[250px] truncate">{item.nome}</TableCell>
                       <TableCell className="text-right">{fmt(item.totalValor)}</TableCell>
@@ -190,41 +189,6 @@ export function AnalysisDashboard({ result }: Props) {
                   ))}
                 </TableBody>
               </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="reps" className="mt-4">
-          <Card>
-            <CardContent className="p-0">
-              {result.representantes.length === 0 ? (
-                <p className="p-6 text-sm text-muted-foreground">Dados de representante não encontrados na base.</p>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Representante</TableHead>
-                      <TableHead className="text-right">Valor Total</TableHead>
-                      <TableHead className="text-right">Clientes</TableHead>
-                      <TableHead className="text-right">Ticket/Cliente</TableHead>
-                      <TableHead className="text-right">Concentração</TableHead>
-                      <TableHead>Potencial</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {result.representantes.map((r, i) => (
-                      <TableRow key={i}>
-                        <TableCell className="font-medium">{r.nome}</TableCell>
-                        <TableCell className="text-right">{fmt(r.totalValor)}</TableCell>
-                        <TableCell className="text-right">{r.clientesUnicos}</TableCell>
-                        <TableCell className="text-right">{fmt(r.ticketMedio)}</TableCell>
-                        <TableCell className="text-right">{r.concentracao.toFixed(1)}%</TableCell>
-                        <TableCell className="text-sm">{r.potencialNaoExplorado}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -269,25 +233,13 @@ export function AnalysisDashboard({ result }: Props) {
               {result.oportunidades.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Nenhuma oportunidade clara identificada.</p>
               ) : (
-                <ul className="space-y-4">
+                <ul className="space-y-3">
                   {result.oportunidades.map((o, i) => (
                     <li key={i} className="text-sm border-l-4 border-primary pl-3 py-2">
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1">
                           <p className="font-medium text-foreground">{o.cliente || 'Geral'}</p>
                           <p className="text-xs text-muted-foreground mt-1">{o.descricao}</p>
-                          {o.topProdutos && o.topProdutos.length > 0 && (
-                            <div className="mt-2 bg-secondary/30 p-2 rounded">
-                              <p className="text-xs font-semibold mb-1">Top 3 Produtos:</p>
-                              <ul className="text-xs space-y-1">
-                                {o.topProdutos.map((p, j) => (
-                                  <li key={j} className="text-muted-foreground">
-                                    {j + 1}. {p.item} - {fmt(p.valor)} ({p.quantidade} un.)
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
                         </div>
                         <div className="flex flex-col gap-1">
                           {confBadge(o.confianca)}
