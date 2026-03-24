@@ -1,0 +1,109 @@
+import { useState } from 'react';
+import { FileUpload } from '@/components/FileUpload';
+import { DataPreview } from '@/components/DataPreview';
+import { AnalysisDashboard } from '@/components/AnalysisDashboard';
+import { ClientDetailAnalysis } from '@/components/ClientDetailAnalysis';
+import { RepresentativeFilter } from '@/components/RepresentativeFilter';
+import { parseFile, type DataValidationResult, type OrderRecord } from '@/lib/data-parser';
+import { runAnalysis, type AnalysisResult } from '@/lib/analysis-engine';
+import { BarChart3 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+const Index = () => {
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [preview, setPreview] = useState<DataValidationResult | null>(null);
+  const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
+  const [allRecords, setAllRecords] = useState<OrderRecord[]>([]);
+
+  const handleFiles = async (files: File[]) => {
+    setIsProcessing(true);
+    setAnalysis(null);
+    try {
+      let combined: OrderRecord[] = [...allRecords];
+      let lastPreview: DataValidationResult | null = null;
+
+      for (const file of files) {
+        const result = await parseFile(file);
+        lastPreview = result;
+        if (result.errors.length > 0) {
+          setPreview(result);
+          setIsProcessing(false);
+          return;
+        }
+        // Deduplicate by pedido number
+        const existingPedidos = new Set(combined.map(r => r.numeroPedido).filter(Boolean));
+        const newRecords = result.records.filter(r => !r.numeroPedido || !existingPedidos.has(r.numeroPedido));
+        combined = [...combined, ...newRecords];
+      }
+
+      setAllRecords(combined);
+
+      const dates = combined.map(r => r.data.getTime());
+      const consolidatedPreview: DataValidationResult = {
+        records: combined,
+        totalRecords: combined.length,
+        periodo: { inicio: new Date(Math.min(...dates)), fim: new Date(Math.max(...dates)) },
+        clientesUnicos: new Set(combined.map(r => r.cliente)).size,
+        warnings: lastPreview?.warnings || [],
+        errors: [],
+      };
+      setPreview(consolidatedPreview);
+
+      const result = runAnalysis(combined);
+      setAnalysis(result);
+    } catch (err) {
+      setPreview({
+        records: [], totalRecords: 0,
+        periodo: { inicio: new Date(), fim: new Date() },
+        clientesUnicos: 0, warnings: [],
+        errors: [`Erro ao processar: ${err instanceof Error ? err.message : 'erro desconhecido'}`],
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border bg-card">
+        <div className="container mx-auto px-4 py-4 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
+            <BarChart3 className="w-5 h-5 text-primary-foreground" />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold text-foreground">Análise Comercial B2B</h1>
+            <p className="text-xs text-muted-foreground">Inteligência de vendas e crescimento de carteira</p>
+          </div>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-6 space-y-6 max-w-6xl">
+        <FileUpload onFilesReady={handleFiles} isProcessing={isProcessing} />
+        {preview && <DataPreview data={preview} />}
+        {analysis && (
+          <Tabs defaultValue="dashboard" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+              <TabsTrigger value="cliente">Por Cliente</TabsTrigger>
+              <TabsTrigger value="representante">Por Representante</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="dashboard" className="mt-6">
+              <AnalysisDashboard result={analysis} records={allRecords} />
+            </TabsContent>
+
+            <TabsContent value="cliente" className="mt-6">
+              <ClientDetailAnalysis records={allRecords} clienteProfile={analysis.clientes[0]} />
+            </TabsContent>
+
+            <TabsContent value="representante" className="mt-6">
+              <RepresentativeFilter records={allRecords} />
+            </TabsContent>
+          </Tabs>
+        )}
+      </main>
+    </div>
+  );
+};
+
+export default Index;
