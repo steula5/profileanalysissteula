@@ -33,8 +33,10 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Create .nojekyll
-        run: touch dist/.nojekyll
+      - name: Create .nojekyll and 404.html
+        run: |
+          touch dist/.nojekyll
+          echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Redirecting...</title><script type="text/javascript">var path = window.location.pathname; var redirect = path + window.location.hash; if (!path.includes(".")) { window.location.replace("/#" + path); }</script></head><body></body></html>' > dist/404.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
