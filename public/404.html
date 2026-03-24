@@ -4,13 +4,12 @@
     <meta charset="utf-8">
     <title>Redirecting...</title>
     <script type="text/javascript">
-      // Redirect all 404s to index.html with hash
       var path = window.location.pathname;
-      var redirect = path + window.location.hash;
-      
+      var repoBase = '/profileanalysissteula';
+
       if (!path.includes('.')) {
-        // Only redirect non-file requests
-        window.location.replace('/#' + path);
+        var route = path.startsWith(repoBase) ? path.slice(repoBase.length) : path;
+        window.location.replace(repoBase + '/#' + route + window.location.search + window.location.hash);
       }
     </script>
   </head>
