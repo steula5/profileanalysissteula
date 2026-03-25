@@ -1,7 +1,9 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Upload, FileSpreadsheet, X, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+
+const VALID_EXTENSIONS = new Set(['xlsx', 'xls', 'csv']);
 
 interface UploadedFile {
   file: File;
@@ -10,29 +12,46 @@ interface UploadedFile {
 }
 
 interface FileUploadProps {
-  onFilesReady: (files: File[]) => void;
+  onFilesReady: (files: File[]) => Promise<void> | void;
   isProcessing: boolean;
 }
 
 export function FileUpload({ onFilesReady, isProcessing }: FileUploadProps) {
   const [files, setFiles] = useState<UploadedFile[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFiles = useCallback((newFiles: FileList | null) => {
     if (!newFiles) return;
-    const valid = Array.from(newFiles).filter(f =>
-      f.name.endsWith('.xlsx') || f.name.endsWith('.xls') || f.name.endsWith('.csv')
-    );
+    const valid = Array.from(newFiles).filter((file) => {
+      const extension = file.name.split('.').pop()?.toLowerCase();
+      return !!extension && VALID_EXTENSIONS.has(extension);
+    });
     if (valid.length === 0) return;
-    const uploaded = valid.map(f => ({ file: f, name: f.name, uploadedAt: new Date() }));
-    setFiles(prev => [...prev, ...uploaded]);
+    setFiles((prev) => {
+      const existingKeys = new Set(prev.map(({ file }) => `${file.name}-${file.size}-${file.lastModified}`));
+      const uploaded = valid
+        .filter((file) => {
+          const key = `${file.name}-${file.size}-${file.lastModified}`;
+          return !existingKeys.has(key);
+        })
+        .map((file) => ({ file, name: file.name, uploadedAt: new Date() }));
+
+      return [...prev, ...uploaded];
+    });
   }, []);
 
   const removeFile = (index: number) => {
     setFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleAnalyze = () => {
-    onFilesReady(files.map(f => f.file));
+  const handleAnalyze = async () => {
+    if (files.length === 0) return;
+
+    await onFilesReady(files.map((uploadedFile) => uploadedFile.file));
+    setFiles([]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   return (
@@ -55,6 +74,7 @@ export function FileUpload({ onFilesReady, isProcessing }: FileUploadProps) {
                 <span>Selecionar arquivos</span>
               </Button>
               <input
+                ref={fileInputRef}
                 type="file"
                 accept=".xlsx,.xls,.csv"
                 multiple
