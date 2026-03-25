@@ -292,11 +292,16 @@ export function parseFile(file: File): Promise<DataValidationResult> {
 
         const dates = records.map(r => r.data.getTime());
         const clientes = new Set(records.map(r => r.cliente));
+        if (records.length === 0 && errors.length === 0) {
+          errors.push('Nenhum registro válido encontrado no arquivo. Verifique colunas e conteúdo.');
+        }
+        const periodoInicio = dates.length > 0 ? new Date(Math.min(...dates)) : new Date();
+        const periodoFim = dates.length > 0 ? new Date(Math.max(...dates)) : new Date();
 
         resolve({
           records,
           totalRecords: records.length,
-          periodo: { inicio: new Date(Math.min(...dates)), fim: new Date(Math.max(...dates)) },
+          periodo: { inicio: periodoInicio, fim: periodoFim },
           clientesUnicos: clientes.size,
           warnings: warnings.slice(0, 20),
           errors,

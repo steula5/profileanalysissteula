@@ -35,13 +35,27 @@ const Index = () => {
         combined = [...combined, ...newRecords];
       }
 
+      if (combined.length === 0) {
+        setPreview({
+          records: [],
+          totalRecords: 0,
+          periodo: { inicio: new Date(), fim: new Date() },
+          clientesUnicos: 0,
+          warnings: lastPreview?.warnings || [],
+          errors: ['Nenhum registro válido encontrado para análise.'],
+        });
+        return;
+      }
+
       setAllRecords(combined);
 
       const dates = combined.map(r => r.data.getTime());
+      const periodoInicio = dates.length > 0 ? new Date(Math.min(...dates)) : new Date();
+      const periodoFim = dates.length > 0 ? new Date(Math.max(...dates)) : new Date();
       const consolidatedPreview: DataValidationResult = {
         records: combined,
         totalRecords: combined.length,
-        periodo: { inicio: new Date(Math.min(...dates)), fim: new Date(Math.max(...dates)) },
+        periodo: { inicio: periodoInicio, fim: periodoFim },
         clientesUnicos: new Set(combined.map(r => r.cliente)).size,
         warnings: lastPreview?.warnings || [],
         errors: [],
