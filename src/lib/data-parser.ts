@@ -17,6 +17,9 @@ export interface DataValidationResult {
   totalRecords: number;
   periodo: { inicio: Date; fim: Date };
   clientesUnicos: number;
+  arquivosNoLote?: number;
+  clientesNoLote?: number;
+  validacaoArquivoCliente?: 'ok' | 'divergente';
   warnings: string[];
   errors: string[];
 }
@@ -174,19 +177,27 @@ function parseSteulaFormat(raw: unknown[][]): DataValidationResult {
         const quantidade = parseNumber(qtdStr);
         const valor = parseNumber(totalStr);
 
-        if (itemNome && (quantidade > 0 || valor > 0)) {
-          records.push({
-            cliente: currentCliente || 'Desconhecido',
-            dataStr: pedidoData.toISOString().split('T')[0],
-            data: pedidoData,
-            valor,
-            item: itemNome,
-            quantidade,
-            vendedor: vendedor,
-            numeroPedido: numeroPedido,
-            precoUnitario: quantidade !== 0 ? valor / quantidade : 0,
-          });
+        if (!itemNome) continue;
+        if (valor <= 0) {
+          warnings.push(`Item "${itemNome}" ignorado por valor zerado/negativo na linha ${j + 1}`);
+          continue;
         }
+        if (quantidade <= 0) {
+          warnings.push(`Item "${itemNome}" ignorado por quantidade zerada/negativa na linha ${j + 1}`);
+          continue;
+        }
+
+        records.push({
+          cliente: currentCliente || 'Desconhecido',
+          dataStr: pedidoData.toISOString().split('T')[0],
+          data: pedidoData,
+          valor,
+          item: itemNome,
+          quantidade,
+          vendedor: vendedor,
+          numeroPedido: numeroPedido,
+          precoUnitario: quantidade !== 0 ? valor / quantidade : 0,
+        });
       }
     }
   }
@@ -267,12 +278,13 @@ export function parseFile(file: File): Promise<DataValidationResult> {
           const valor = parseNumber(valorVal);
           const quantidade = parseNumber(qtdVal);
 
-          if (valor === 0 && quantidade === 0) {
-            warnings.push(`Linha ${i + 1}: valor e quantidade zerados`);
+          if (valor <= 0) {
+            warnings.push(`Linha ${i + 1}: valor zerado/negativo (${valor})`);
             continue;
           }
-          if (quantidade < 0) {
-            warnings.push(`Linha ${i + 1}: quantidade negativa (${quantidade})`);
+          if (quantidade <= 0) {
+            warnings.push(`Linha ${i + 1}: quantidade zerada/negativa (${quantidade})`);
+            continue;
           }
 
           const precoUnitario = quantidade !== 0 ? valor / quantidade : 0;

@@ -43,7 +43,7 @@ export function DataPreview({ data }: DataPreviewProps) {
         )}
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
           <div className="p-3 rounded-md bg-secondary/50">
             <p className="text-lg font-semibold text-foreground">{data.totalRecords.toLocaleString('pt-BR')}</p>
             <p className="text-xs text-muted-foreground">Registros</p>
@@ -58,7 +58,24 @@ export function DataPreview({ data }: DataPreviewProps) {
             </p>
             <p className="text-xs text-muted-foreground">Período</p>
           </div>
+          <div className="p-3 rounded-md bg-secondary/50">
+            <p className="text-sm font-medium text-foreground">
+              {(data.clientesNoLote ?? 0).toLocaleString('pt-BR')} cliente(s) / {(data.arquivosNoLote ?? 0).toLocaleString('pt-BR')} arquivo(s)
+            </p>
+            <p className="text-xs text-muted-foreground">Validação Arquivo x Cliente</p>
+          </div>
         </div>
+
+        {data.arquivosNoLote !== undefined && data.clientesNoLote !== undefined && (
+          <div className={`p-3 rounded-md border mb-3 ${data.validacaoArquivoCliente === 'ok' ? 'bg-accent/10 border-accent/30' : 'bg-destructive/10 border-destructive/20'}`}>
+            <p className={`text-sm flex items-center gap-2 ${data.validacaoArquivoCliente === 'ok' ? 'text-foreground' : 'text-destructive'}`}>
+              {data.validacaoArquivoCliente === 'ok' ? <CheckCircle className="w-4 h-4 shrink-0" /> : <AlertCircle className="w-4 h-4 shrink-0" />}
+              {data.validacaoArquivoCliente === 'ok'
+                ? `OK: ${data.arquivosNoLote} arquivo(s) no lote e ${data.clientesNoLote} cliente(s) identificados.`
+                : `Divergência: ${data.arquivosNoLote} arquivo(s) no lote para ${data.clientesNoLote} cliente(s) identificados.`}
+            </p>
+          </div>
+        )}
 
         {data.errors.length > 0 && (
           <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20 mb-3">

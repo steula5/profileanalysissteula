@@ -20,10 +20,22 @@ const Index = () => {
     try {
       let combined: OrderRecord[] = [...allRecords];
       let lastPreview: DataValidationResult | null = null;
+      const warningsLote: string[] = [];
+      const clientesNoLote = new Set<string>();
+      const arquivosNoLote = files.length;
 
       for (const file of files) {
         const result = await parseFile(file);
         lastPreview = result;
+        warningsLote.push(...result.warnings);
+
+        const clientesArquivo = [...new Set(result.records.map(r => r.cliente).filter(Boolean))];
+        clientesArquivo.forEach(cliente => clientesNoLote.add(cliente));
+
+        if (clientesArquivo.length > 1) {
+          warningsLote.push(`${file.name}: contém ${clientesArquivo.length} clientes; esperado 1 por arquivo.`);
+        }
+
         if (result.errors.length > 0) {
           setPreview(result);
           setIsProcessing(false);
@@ -35,13 +47,18 @@ const Index = () => {
         combined = [...combined, ...newRecords];
       }
 
+      combined = combined.filter(record => record.valor > 0 && record.quantidade > 0);
+
       if (combined.length === 0) {
         setPreview({
           records: [],
           totalRecords: 0,
           periodo: { inicio: new Date(), fim: new Date() },
           clientesUnicos: 0,
-          warnings: lastPreview?.warnings || [],
+          arquivosNoLote,
+          clientesNoLote: clientesNoLote.size,
+          validacaoArquivoCliente: arquivosNoLote === clientesNoLote.size ? 'ok' : 'divergente',
+          warnings: warningsLote,
           errors: ['Nenhum registro válido encontrado para análise.'],
         });
         return;
@@ -57,7 +74,10 @@ const Index = () => {
         totalRecords: combined.length,
         periodo: { inicio: periodoInicio, fim: periodoFim },
         clientesUnicos: new Set(combined.map(r => r.cliente)).size,
-        warnings: lastPreview?.warnings || [],
+        arquivosNoLote,
+        clientesNoLote: clientesNoLote.size,
+        validacaoArquivoCliente: arquivosNoLote === clientesNoLote.size ? 'ok' : 'divergente',
+        warnings: warningsLote.slice(0, 30),
         errors: [],
       };
       setPreview(consolidatedPreview);
