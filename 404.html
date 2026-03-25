@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Redirecting...</title>
+    <script type="text/javascript">
+      var path = window.location.pathname;
+      var repoBase = '/profileanalysissteula';
+
+      if (!path.includes('.')) {
+        var route = path.startsWith(repoBase) ? path.slice(repoBase.length) : path;
+        window.location.replace(repoBase + '/#' + route + window.location.search + window.location.hash);
+      }
+    </script>
+  </head>
+  <body>
+  </body>
+</html>
